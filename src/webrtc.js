@@ -38,11 +38,9 @@ class WebrtcSession {
           );
           this.hasRemoteDesc.resolve();
           var mediaConstraints = {
-            optional: [],
-            mandatory: {
-              OfferToReceiveAudio: true,
-              OfferToReceiveVideo: true
-            }
+            voiceActivityDetection: false,
+            audio: false,
+            video: false
           };
           await this.pc.setLocalDescription(
             await this.pc.createAnswer(mediaConstraints)
