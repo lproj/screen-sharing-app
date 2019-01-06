@@ -30001,7 +30001,7 @@ object-assign
                 resolution: "60",
                 iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }]
               },
-              keyCapture: !1
+              keyCapture: !0
             }),
             t
           );

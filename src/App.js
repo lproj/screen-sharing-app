@@ -291,7 +291,7 @@ class ScreenSharing extends Component {
         resolution: "60",
         iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }]
       },
-      keyCapture: false
+      keyCapture: true
     };
   }
 
