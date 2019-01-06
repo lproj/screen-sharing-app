@@ -1,3 +1,11 @@
+## Overview
+
+This is a web app based on standard web technologies which allows
+the Raspberry Pi to share its screen, speakers (“what you hear”)
+and keyboard to the PC browser.
+
+More info can be found [here](https://www.linux-projects.org/uv4l/tutorials/rpi-webapp-screen-audio-keyboard-sharing/)
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
