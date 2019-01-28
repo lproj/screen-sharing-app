@@ -17,7 +17,17 @@
 }
 
 #panelElement {
-  width: 320px;
+  width: 360px;
   display: inline-block;
   font-size: small;
+  text-align: left;
+}
+
+.panel {
+  margin-bottom: 7px;
+}
+
+.panel-body {
+  padding-top: 1px;
+  padding-bottom: 3px;
 }

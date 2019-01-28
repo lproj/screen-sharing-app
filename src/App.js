@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import {
   Button,
   PageHeader,
-  Media,
   Label,
   ControlLabel,
   FormControl,
@@ -335,37 +334,31 @@ class ScreenSharing extends Component {
   render() {
     return (
       <div>
-        <Media>
-          <Media.Heading align="middle">
-            <div>
-              <Url
-                title="URL of the Web Service to call"
-                url={this.state.url}
-                onUrlChange={this.handleUrlChange}
-              />
-            </div>
-            <video ref={this.videoRef} id="videoElement" autoPlay="" controls>
-              Your browser does not support the video tag.
-            </video>
-          </Media.Heading>
-          <Media.Body>
-            <Media.Heading>
-              <Options
-                options={this.state.options}
-                onOptionsChange={this.handleOptionsChange}
-                keyCapture={this.state.keyCapture}
-                onKeyCaptureChange={this.handleChangeKeyCapture}
-              />
-            </Media.Heading>
-            <SessionManager
-              ref={this.sessionRef}
-              url={this.state.url}
-              keyCapture={this.state.keyCapture}
-              options={this.state.options}
-              onStream={this.onStream}
-            />
-          </Media.Body>
-        </Media>
+        <Url
+          title="URL of the Web Service to call"
+          url={this.state.url}
+          onUrlChange={this.handleUrlChange}
+        />
+        <div>
+          <video ref={this.videoRef} id="videoElement" autoPlay="" controls>
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div>
+          <Options
+            options={this.state.options}
+            onOptionsChange={this.handleOptionsChange}
+            keyCapture={this.state.keyCapture}
+            onKeyCaptureChange={this.handleChangeKeyCapture}
+          />
+        </div>
+        <SessionManager
+          ref={this.sessionRef}
+          url={this.state.url}
+          keyCapture={this.state.keyCapture}
+          options={this.state.options}
+          onStream={this.onStream}
+        />
       </div>
     );
   }
