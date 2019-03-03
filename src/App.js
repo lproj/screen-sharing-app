@@ -13,6 +13,7 @@ import {
 } from "react-bootstrap";
 import WebrtcSession from "./webrtc";
 import Keyboard from "./keyboard";
+import Gamepad from "./gamepad";
 import "./App.css";
 
 class SessionManager extends Component {
@@ -22,6 +23,9 @@ class SessionManager extends Component {
     this.handleClick = this.handleClick.bind(this);
     if (props.keyCapture) {
       this.enableKeyCapture();
+    }
+    if (props.gamepadCapture) {
+      this.enableGamepadCapture();
     }
   }
 
@@ -85,6 +89,47 @@ class SessionManager extends Component {
       console.info("key capture disabled");
     }
     this.keyboard = null;
+  }
+
+  sendGamepadEvents(events) {
+    if (this.datachannel) {
+      console.log(events);
+      this.datachannel.send(events);
+    }
+  }
+
+  enableGamepadCapture() {
+    this.gamepad = new Gamepad(events => {
+      this.sendGamepadEvents(events);
+    });
+    this.gamepad.start();
+    window.addEventListener(
+      "gamepadconnected",
+      this.gamepad.onGamepadConnected,
+      true
+    );
+    window.addEventListener(
+      "gamepaddisconnected",
+      this.gamepad.onGamepadDisconnected,
+      true
+    );
+    console.info("gamepad capture enabled");
+  }
+
+  disableGamepadCapture() {
+    this.gamepad.stop();
+    window.removeEventListener(
+      "gamepadconnected",
+      this.gamepad.onGamepadConnected,
+      true
+    );
+    window.removeEventListener(
+      "gamepaddisconnected",
+      this.gamepad.onGamepadDisconnected,
+      true
+    );
+    console.info("gamepad capture disabled");
+    this.gamepad = null;
   }
 
   render() {
@@ -155,6 +200,9 @@ class Options extends Component {
   constructor(props) {
     super(props);
     this.handleChangeKeyCapture = this.handleChangeKeyCapture.bind(this);
+    this.handleChangeGamepadCapture = this.handleChangeGamepadCapture.bind(
+      this
+    );
     this.handleChangeCodec = this.handleChangeCodec.bind(this);
     this.handleChangeResolution = this.handleChangeResolution.bind(this);
     this.handleChangeIceServers = this.handleChangeIceServers.bind(this);
@@ -162,6 +210,10 @@ class Options extends Component {
 
   handleChangeKeyCapture(e) {
     this.props.onKeyCaptureChange(e.target.checked);
+  }
+
+  handleChangeGamepadCapture(e) {
+    this.props.onGamepadCaptureChange(e.target.checked);
   }
 
   handleChangeCodec(e) {
@@ -195,6 +247,9 @@ class Options extends Component {
         Useful to get full control of the remote peer with your keyboard
       </Tooltip>
     );
+    const tooltipShareGamepad = (
+      <Tooltip id="tooltipShareGamepad">Share your local Gamepad</Tooltip>
+    );
     const tooltipIceServers = (
       <Tooltip id="tooltipIceServers">
         WebRTC ICE Servers as standard JSON string.{" "}
@@ -213,6 +268,16 @@ class Options extends Component {
           >
             <OverlayTrigger placement="top" overlay={tooltipShareKeyboard}>
               <span>Capture and send key strokes from your local keyboard</span>
+            </OverlayTrigger>
+          </Checkbox>
+        </Panel.Body>
+        <Panel.Body collapsible>
+          <Checkbox
+            checked={this.props.gamepadCapture}
+            onChange={this.handleChangeGamepadCapture}
+          >
+            <OverlayTrigger placement="top" overlay={tooltipShareGamepad}>
+              <span>Capture and send events from your local gamepad</span>
             </OverlayTrigger>
           </Checkbox>
         </Panel.Body>
@@ -280,6 +345,9 @@ class ScreenSharing extends Component {
     this.handleUrlChange = this.handleUrlChange.bind(this);
     this.handleOptionsChange = this.handleOptionsChange.bind(this);
     this.handleChangeKeyCapture = this.handleChangeKeyCapture.bind(this);
+    this.handleChangeGamepadCapture = this.handleChangeGamepadCapture.bind(
+      this
+    );
     this.onStream = this.onStream.bind(this);
     this.videoRef = React.createRef();
     this.sessionRef = React.createRef();
@@ -290,7 +358,8 @@ class ScreenSharing extends Component {
         resolution: "60",
         iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }]
       },
-      keyCapture: true
+      keyCapture: true,
+      gamepadCapture: true
     };
   }
 
@@ -326,6 +395,15 @@ class ScreenSharing extends Component {
     }
   }
 
+  handleChangeGamepadCapture(e) {
+    this.setState({ gamepadCapture: !this.state.gamepadCapture });
+    if (!this.state.gamepadCapture) {
+      this.sessionRef.current.enableGamepadCapture();
+    } else {
+      this.sessionRef.current.disableGamepadCapture();
+    }
+  }
+
   onStream(stream) {
     this.videoRef.current.srcObject = stream;
     this.videoRef.current.play();
@@ -350,12 +428,15 @@ class ScreenSharing extends Component {
             onOptionsChange={this.handleOptionsChange}
             keyCapture={this.state.keyCapture}
             onKeyCaptureChange={this.handleChangeKeyCapture}
+            gamepadCapture={this.state.gamepadCapture}
+            onGamepadCaptureChange={this.handleChangeGamepadCapture}
           />
         </div>
         <SessionManager
           ref={this.sessionRef}
           url={this.state.url}
           keyCapture={this.state.keyCapture}
+          gamepadCapture={this.state.gamepadCapture}
           options={this.state.options}
           onStream={this.onStream}
         />
@@ -369,7 +450,7 @@ class App extends Component {
     const tooltip = (
       <Tooltip id="tooltip">
         Share screen and speakers from an headless peer and control it with your
-        local keyboard!
+        local keyboard and gamepad!
       </Tooltip>
     );
     return (
@@ -377,7 +458,7 @@ class App extends Component {
         <PageHeader className="App-header">
           <OverlayTrigger placement="bottom" overlay={tooltip}>
             <Label>
-              <span>WebRTC Screen/Speaker/Keyboard Sharing </span>
+              <span>WebRTC Screen/Speaker/Keyboard/Gamepad Sharing </span>
               <small>
                 <a
                   className="App-link"
