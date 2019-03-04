@@ -21,6 +21,7 @@ class SessionManager extends Component {
     super(props);
     this.state = { isToggleOn: true };
     this.handleClick = this.handleClick.bind(this);
+    this.requestFullscreen = this.requestFullscreen.bind(this);
     if (props.keyCapture) {
       this.enableKeyCapture();
     }
@@ -29,9 +30,25 @@ class SessionManager extends Component {
     }
   }
 
+  async requestFullscreen() {
+    var elem = this.props.videoRef.current;
+    if (elem.requestFullscreen) {
+      await elem.requestFullscreen();
+    } else if (elem.mozRequestFullScreen) {
+      await elem.mozRequestFullScreen();
+    } else if (elem.webkitRequestFullscreen) {
+      await elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+      await elem.msRequestFullscreen();
+    }
+  }
+
   async handleClick() {
     if (this.state.isToggleOn) {
       try {
+        if (this.props.fullscreen) {
+          this.requestFullscreen();
+        }
         this.session = new WebrtcSession(this.props.url, this.props.options);
         this.session.setOnStreamCallback(this.props.onStream);
         this.session.setOnCloseCallback(() => {
@@ -206,6 +223,7 @@ class Options extends Component {
     this.handleChangeCodec = this.handleChangeCodec.bind(this);
     this.handleChangeResolution = this.handleChangeResolution.bind(this);
     this.handleChangeIceServers = this.handleChangeIceServers.bind(this);
+    this.handleChangeFullscreen = this.handleChangeFullscreen.bind(this);
   }
 
   handleChangeKeyCapture(e) {
@@ -214,6 +232,10 @@ class Options extends Component {
 
   handleChangeGamepadCapture(e) {
     this.props.onGamepadCaptureChange(e.target.checked);
+  }
+
+  handleChangeFullscreen(e) {
+    this.props.onFullscreenChange(e.target.checked);
   }
 
   handleChangeCodec(e) {
@@ -254,6 +276,11 @@ class Options extends Component {
       <Tooltip id="tooltipIceServers">
         WebRTC ICE Servers as standard JSON string.{" "}
         <strong>Leave the default value if you do not know</strong>
+      </Tooltip>
+    );
+    const tooltipFullscreen = (
+      <Tooltip id="tooltipFullscreen">
+        Start in fullscreen mode in the browser
       </Tooltip>
     );
     return (
@@ -320,6 +347,16 @@ class Options extends Component {
           </FormControl>
         </Panel.Body>
         <Panel.Body collapsible>
+          <Checkbox
+            checked={this.props.fullscreen}
+            onChange={this.handleChangeFullscreen}
+          >
+            <OverlayTrigger placement="top" overlay={tooltipFullscreen}>
+              <span>Start in fullscreen mode</span>
+            </OverlayTrigger>
+          </Checkbox>
+        </Panel.Body>
+        <Panel.Body collapsible>
           <OverlayTrigger
             id="iceServersElement"
             placement="top"
@@ -345,6 +382,7 @@ class ScreenSharing extends Component {
     this.handleUrlChange = this.handleUrlChange.bind(this);
     this.handleOptionsChange = this.handleOptionsChange.bind(this);
     this.handleChangeKeyCapture = this.handleChangeKeyCapture.bind(this);
+    this.handleChangeFullscreen = this.handleChangeFullscreen.bind(this);
     this.handleChangeGamepadCapture = this.handleChangeGamepadCapture.bind(
       this
     );
@@ -355,11 +393,12 @@ class ScreenSharing extends Component {
       url: this.getDefaultUrl(), // e.g. "ws://192.168.1.10:9080/stream/webrtc",
       options: {
         useH264: true,
-        resolution: "60",
+        resolution: "35",
         iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }]
       },
       keyCapture: true,
-      gamepadCapture: true
+      gamepadCapture: true,
+      fullscreen: typeof window.orientation !== "undefined" // simple way to check if we are on a mobile
     };
   }
 
@@ -404,9 +443,13 @@ class ScreenSharing extends Component {
     }
   }
 
-  onStream(stream) {
+  handleChangeFullscreen(fullscreen) {
+    this.setState({ fullscreen });
+  }
+
+  async onStream(stream) {
     this.videoRef.current.srcObject = stream;
-    this.videoRef.current.play();
+    await this.videoRef.current.play();
   }
 
   render() {
@@ -430,6 +473,8 @@ class ScreenSharing extends Component {
             onKeyCaptureChange={this.handleChangeKeyCapture}
             gamepadCapture={this.state.gamepadCapture}
             onGamepadCaptureChange={this.handleChangeGamepadCapture}
+            fullscreen={this.state.fullscreen}
+            onFullscreenChange={this.handleChangeFullscreen}
           />
         </div>
         <SessionManager
@@ -439,6 +484,8 @@ class ScreenSharing extends Component {
           gamepadCapture={this.state.gamepadCapture}
           options={this.state.options}
           onStream={this.onStream}
+          videoRef={this.videoRef}
+          fullscreen={this.state.fullscreen}
         />
       </div>
     );

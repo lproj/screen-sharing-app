@@ -121,8 +121,8 @@ class WebrtcSession {
     };
 
     if (this.onStream) {
-      this.pc.ontrack = event => {
-        this.onStream(event.streams[0]);
+      this.pc.ontrack = async event => {
+        await this.onStream(event.streams[0]);
       };
     }
 
